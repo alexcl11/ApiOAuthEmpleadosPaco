@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MvcOAuthApiEmpleados.Filters;
 using MvcOAuthApiEmpleados.Models;
 using MvcOAuthApiEmpleados.Services;
 
@@ -19,21 +20,14 @@ namespace MvcOAuthApiEmpleados.Controllers
             return View(empleados);
         }
 
+        [AuthorizeEmpleados]
         public async Task<IActionResult> Details(int idempleado)
         {
-            //TENDREMOS EL TOKEN EN SESSION
-            string token = HttpContext.Session.GetString("TOKEN");
-            if (token == null)
-            {
-                ViewData["MENSAJE"] = "Debe hacer Login";
-                return View();
-            }
-            else
-            {
-                Empleado empleado =
-                    await this.service.FindEmpleadoAsync(idempleado, token);
-                return View(empleado);
-            }
+            
+            Empleado empleado =
+                await this.service.FindEmpleadoAsync(idempleado);
+            return View(empleado);
+            
         }
     }
 }

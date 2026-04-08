@@ -44,6 +44,8 @@ namespace MvcOAuthApiEmpleados.Controllers
                 //ALMACENAMOS EL PASSWORD DEL USUARIO COMO IDENTIFIER
                 identity.AddClaim(new Claim(ClaimTypes.NameIdentifier
                     , model.Password));
+                //ALMACENAMOS EL TOKEN DEL USUARIO
+                identity.AddClaim(new Claim("TOKEN", token));
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
                 //DAMOS DE ALTA AL USUARIO DURANTE 20 MINUTOS
                 await HttpContext.SignInAsync
