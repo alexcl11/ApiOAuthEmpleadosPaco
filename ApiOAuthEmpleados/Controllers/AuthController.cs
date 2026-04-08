@@ -4,8 +4,10 @@ using ApiOAuthEmpleados.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System.Diagnostics.Eventing.Reader;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ApiOAuthEmpleados.Controllers
 {
@@ -15,11 +17,16 @@ namespace ApiOAuthEmpleados.Controllers
     {
         private RepositoryHospital repo;
         private HelperActionOAuthService helper;
+        private HelperCifrado helperCifrado;
         public AuthController(RepositoryHospital repo
-            , HelperActionOAuthService helper)
+            , HelperActionOAuthService helper, IConfiguration config)
         {
             this.repo = repo;
             this.helper = helper;
+            string secretoCifrado = config.GetValue<string>("CifradoDatos:SecretKey");
+
+            // Inicializamos el helper con el nuevo secreto
+            this.helperCifrado = new HelperCifrado(secretoCifrado);
         }
 
         [HttpPost]
@@ -42,10 +49,25 @@ namespace ApiOAuthEmpleados.Controllers
                     new SigningCredentials
                     (this.helper.GetKeyToken(),
                     SecurityAlgorithms.HmacSha256);
+
+                // 1. Serializamos el objeto
+                string jsonEmpleado = JsonConvert.SerializeObject(empleado);
+
+                // 2. ENCRIPTAMOS el JSON
+                string jsonEncriptado = this.helperCifrado.EncryptString(jsonEmpleado);
+
+
+                // 3. Guardamos el dato encriptado en el Claim
+                Claim[] informacion = new[]
+                {
+                    new Claim("UserData", jsonEncriptado)
+                };
+
                 //EL TOKEN SE GENERA CON UNA CLASE Y DEBEMOS 
                 //ALMACENAR LOS DATOS DE ISSUER, CREDENTIALS...
                 JwtSecurityToken token =
                     new JwtSecurityToken(
+                        claims: informacion,
                         issuer: this.helper.Issuer,
                         audience: this.helper.Audience,
                         signingCredentials: credentials,

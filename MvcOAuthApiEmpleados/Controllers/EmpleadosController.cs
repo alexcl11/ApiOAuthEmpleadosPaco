@@ -2,6 +2,7 @@
 using MvcOAuthApiEmpleados.Filters;
 using MvcOAuthApiEmpleados.Models;
 using MvcOAuthApiEmpleados.Services;
+using System.Security.Claims;
 
 namespace MvcOAuthApiEmpleados.Controllers
 {
@@ -29,5 +30,20 @@ namespace MvcOAuthApiEmpleados.Controllers
             return View(empleado);
             
         }
+
+        [AuthorizeEmpleados]
+        public async Task<IActionResult> Perfil()
+        {
+            Empleado empleado = await this.service.GetPerfilAsync();
+            return View(empleado);
+        }
+
+        [AuthorizeEmpleados]
+        public async Task<IActionResult> Compis()
+        {
+            List<Empleado> empleados = await this.service.GetCompisAsync();
+            return View(empleados);
+        }
+
     }
 }
