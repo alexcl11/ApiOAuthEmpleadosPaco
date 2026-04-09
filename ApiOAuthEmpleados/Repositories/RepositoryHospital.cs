@@ -1,6 +1,7 @@
 ﻿using ApiOAuthEmpleados.Data;
 using ApiOAuthEmpleados.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace ApiOAuthEmpleados.Repositories
 {
@@ -34,6 +35,29 @@ namespace ApiOAuthEmpleados.Repositories
                 .Where(z => z.Apellido == apellido
                 && z.IdEmpleado == idEmpleado)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<string>> GetOficiosAsync()
+        {
+            var consulta = (from datos in this.context.Empleados
+                            select datos.Oficio).Distinct();
+            return await consulta.ToListAsync();
+        }
+        public async Task<List<Empleado>> GetEmpleadosOficiosAsync(List<string> oficios)
+        {
+            var consulta = from datos in this.context.Empleados
+                           where oficios.Contains(datos.Oficio)
+                           select datos;
+            return await consulta.ToListAsync();
+        }
+        public async Task IncrementarSalario(int incremento, List<string> oficios)
+        {
+            List<Empleado> empleados = await this.GetEmpleadosOficiosAsync(oficios);
+            foreach (var empleado in empleados)
+            {
+                empleado.Salario += incremento;
+            }
+            await this.context.SaveChangesAsync();
         }
     }
 }

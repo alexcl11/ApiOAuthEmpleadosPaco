@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Claims;
 // IMPORTANTE: No olvides el using de tus helpers
-using ApiOAuthEmpleados.Helpers; 
+using ApiOAuthEmpleados.Helpers;
+using Microsoft.AspNetCore.Components;
+using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 
 namespace ApiOAuthEmpleados.Controllers
 {
@@ -72,6 +74,28 @@ namespace ApiOAuthEmpleados.Controllers
             
             Empleado empleado = JsonConvert.DeserializeObject<Empleado>(jsonEmpleado);
             return await this.repo.GetCompisAsync(empleado.IdDepartamento);
+        }
+
+        [HttpGet]
+        [Route("[action]")]
+        public async Task<ActionResult<List<string>>> Oficios()
+        {
+            return await this.repo.GetOficiosAsync();
+        }
+
+        //?oficio=ANALISTA&oficio=DIRECTOR
+        [HttpGet]
+        [Route("[action]")]
+        public async Task<ActionResult<List<Empleado>>> EmpleadosOficio([FromQuery] List<string> oficios)
+        {
+            return await this.repo.GetEmpleadosOficiosAsync(oficios);
+        }
+        [HttpPut]
+        [Route("[action]/{incremento}")]
+        public async Task<ActionResult> IncrementarSalarios(int incremento, [FromQuery] List<string> oficios)
+        {
+            await this.repo.IncrementarSalario(incremento, oficios);
+            return Ok();
         }
     }
 }

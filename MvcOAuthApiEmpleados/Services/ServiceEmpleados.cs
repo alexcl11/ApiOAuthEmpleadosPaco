@@ -2,6 +2,7 @@
 using MvcOAuthApiEmpleados.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 
@@ -19,6 +20,44 @@ namespace MvcOAuthApiEmpleados.Services
             this.header = new 
                 MediaTypeWithQualityHeaderValue("application/json");
             this.contextAccessor = contextAccessor;
+        }
+
+
+        private string TransformCollectionToQuery(List<string> collection)
+        {
+            string result = "";
+            foreach (string oficio in collection)
+            {
+                result += "oficios=" + oficio+"&";
+            }
+            result = result.TrimEnd('&');
+            return result;
+        }
+
+        public async Task<List<Empleado>> GetEmpleadosOficioAsync(List<string> oficios)
+        {
+            string data = this.TransformCollectionToQuery(oficios);
+            string request = "api/empleados/empleadosOficio";
+            return await this.CallApiAsync<List<Empleado>>(request + "?" + data);
+        }
+
+        public async Task IncrementarSalarioOficios(int incremento, List<string> oficios)
+        {
+            string data = this.TransformCollectionToQuery(oficios);
+            string request = "api/empleados/incrementarSalarios/"+incremento;
+            using(HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(this.UrlApi);
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Accept.Add(this.header);
+                HttpResponseMessage response = await client.PutAsync(request + "?"+data, null);
+            }
+        }
+
+        public async Task<List<string>> GetOficiosAsync()
+        {
+            string request = "api/empleados/oficios";
+            return await this.CallApiAsync<List<string>>(request);
         }
 
         public async Task<string> LogInAsync
